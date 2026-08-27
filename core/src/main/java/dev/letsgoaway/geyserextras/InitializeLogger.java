@@ -1,6 +1,5 @@
 package dev.letsgoaway.geyserextras;
 
-import dev.letsgoaway.geyserextras.core.parity.java.blockdisplay.BlockDisplayEntity;
 import dev.letsgoaway.geyserextras.core.utils.IsAvailable;
 import dev.letsgoaway.geyserextras.core.version.PluginVersion;
 
