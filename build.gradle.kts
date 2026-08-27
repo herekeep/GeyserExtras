@@ -74,7 +74,7 @@ subprojects {
 
     plugins.withId("java") {
         java {
-            toolchain.languageVersion = JavaLanguageVersion.of(17)
+            toolchain.languageVersion = JavaLanguageVersion.of(21)
         }
     }
 
