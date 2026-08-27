@@ -72,9 +72,6 @@ public class GeyserHandler {
         Registries.BEDROCK_PACKET_TRANSLATORS.register(InventoryTransactionPacket.class, new BedrockInventoryTransactionInjector());
         Registries.BEDROCK_PACKET_TRANSLATORS.register(MobEquipmentPacket.class, new BedrockMobEquipmentInjector());
 
-        // Emotes
-        Registries.BEDROCK_PACKET_TRANSLATORS.register(EmoteListPacket.class, new BedrockEmoteListInjector());
-
         // Settings
         Registries.BEDROCK_PACKET_TRANSLATORS.register(ServerSettingsRequestPacket.class, new BedrockServerSettingsRequestInjector());
 
