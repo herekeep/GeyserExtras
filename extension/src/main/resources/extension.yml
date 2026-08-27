@@ -1,6 +1,6 @@
 id: ${id}
 name: ${name}
 main: dev.letsgoaway.geyserextras.extension.GeyserExtrasExtension
-api: 2.11.1
+api: 2.10.0
 version: ${version}
 authors: [LetsGoAway]

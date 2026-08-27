@@ -9,7 +9,7 @@ dependencies {
     shadow("com.fasterxml.jackson.core:jackson-databind:2.17.0")
     implementation("net.kyori:adventure-api:4.18.0")
     compileOnly("com.github.retrooper:packetevents-api:2.10.0")
-    compileOnly("org.geysermc.geyser:core:2.11.1-SNAPSHOT")
+    compileOnly("org.geysermc.geyser:core:2.10.0")
     compileOnly("org.geysermc.floodgate:core:2.2.5-SNAPSHOT")
     compileOnly("org.projectlombok:lombok:1.18.34")
     annotationProcessor("org.projectlombok:lombok:1.18.34")
