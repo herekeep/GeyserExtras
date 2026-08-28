@@ -112,7 +112,17 @@ public class CooldownHandler {
 
     // this code is shit
     private void sendCooldown(double progress) {
-        CooldownType position = session.getPreferencesCache().getCooldownPreference();
+        CooldownType position;
+org.geysermc.geyser.util.CooldownUtils.CooldownType nativeType = session.getPreferencesCache().getCooldownPreference();
+if (nativeType == null) {
+    position = CooldownType.OFF;
+} else {
+    switch (nativeType) {
+        case CROSSHAIR -> position = CooldownType.CROSSHAIR;
+        case HOTBAR -> position = CooldownType.HOTBAR;
+        default -> position = CooldownType.OFF;
+    }
+}
         if (position.equals(CooldownType.OFF)) return;
 
         if (digTicks != -1 || progress == 1.0) {

@@ -248,6 +248,45 @@ public class ExtrasPlayer {
         session.sendUpstreamPacket(titlePacket);
     }
 
+    public void sendTitle(String title, String subtitle, int fadeIn, int stay, int fadeOut) {
+    // 发送主标题
+    SetTitlePacket titlePacket = new SetTitlePacket();
+    titlePacket.setType(SetTitlePacket.Type.TITLE);
+    titlePacket.setText(title != null ? title : "");
+    titlePacket.setXuid("");
+    titlePacket.setPlatformOnlineId("");
+    session.sendUpstreamPacket(titlePacket);
+    
+    // 发送副标题（如果有）
+    if (subtitle != null && !subtitle.isEmpty()) {
+        SetTitlePacket subPacket = new SetTitlePacket();
+        subPacket.setType(SetTitlePacket.Type.SUBTITLE);
+        subPacket.setText(subtitle);
+        subPacket.setXuid("");
+        subPacket.setPlatformOnlineId("");
+        session.sendUpstreamPacket(subPacket);
+    }
+    
+    // 设置标题显示时间
+    SetTitlePacket timesPacket = new SetTitlePacket();
+    timesPacket.setType(SetTitlePacket.Type.TIMES);
+    timesPacket.setFadeInTime(fadeIn);
+    timesPacket.setStayTime(stay);
+    timesPacket.setFadeOutTime(fadeOut);
+    timesPacket.setXuid("");
+    timesPacket.setPlatformOnlineId("");
+    session.sendUpstreamPacket(timesPacket);
+     }
+
+public void sendActionbarTitle(String text) {
+    SetTitlePacket packet = new SetTitlePacket();
+    packet.setType(SetTitlePacket.Type.ACTIONBAR);
+    packet.setText(text != null ? text : "");
+    packet.setXuid("");
+    packet.setPlatformOnlineId("");
+    session.sendUpstreamPacket(packet);
+     }
+
     public void sendForm(BedrockForm form) {
         if (IsAvailable.floodgate()) {
             org.geysermc.floodgate.api.FloodgateApi.getInstance().getPlayer(javaUUID).sendForm(form.create(this).build());
@@ -278,7 +317,7 @@ public class ExtrasPlayer {
 
     public void swingArm() {
         AnimatePacket animatePacket = new AnimatePacket();
-        animatePacket.setRuntimeEntityId(session.getPlayerEntity().getGeyserId());
+        animatePacket.setRuntimeEntityId(session.getPlayerEntity().geyserId());
         animatePacket.setAction(AnimatePacket.Action.SWING_ARM);
         session.sendUpstreamPacket(animatePacket);
     }
