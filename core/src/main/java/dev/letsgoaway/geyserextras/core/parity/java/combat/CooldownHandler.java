@@ -10,7 +10,7 @@ import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.util.CooldownUtils;
+import dev.letsgoaway.geyserextras.core.parity.java.combat.CooldownType;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
@@ -112,8 +112,8 @@ public class CooldownHandler {
 
     // this code is shit
     private void sendCooldown(double progress) {
-        CooldownUtils.CooldownType position = session.getPreferencesCache().getCooldownPreference();
-        if (position.equals(CooldownUtils.CooldownType.OFF)) return;
+        CooldownType position = session.getPreferencesCache().getCooldownPreference();
+        if (position.equals(CooldownType.OFF)) return;
 
         if (digTicks != -1 || progress == 1.0) {
             switch (session.getPreferencesCache().getCooldownPreference()) {

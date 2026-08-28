@@ -8,6 +8,7 @@ import dev.letsgoaway.geyserextras.core.locale.GELocale;
 import dev.letsgoaway.geyserextras.core.parity.bedrock.EmoteUtils;
 import dev.letsgoaway.geyserextras.core.parity.java.menus.serverlinks.ServerLinksData;
 import dev.letsgoaway.geyserextras.core.parity.java.menus.tablist.TabListData;
+import dev.letsgoaway.geyserextras.core.parity.java.combat.CooldownHandler;
 import dev.letsgoaway.geyserextras.core.preferences.PreferencesData;
 import dev.letsgoaway.geyserextras.core.preferences.bindings.Remappable;
 import dev.letsgoaway.geyserextras.core.utils.IdUtils;
