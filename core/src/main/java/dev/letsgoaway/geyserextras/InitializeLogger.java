@@ -35,7 +35,7 @@ public class InitializeLogger {
 
     public static void end() {
         if (GE.getConfig().isEnableBlockDisplayWorkaround()) {
-            BlockDisplayEntity.buildEntityDef();
+            //BlockDisplayEntity.buildEntityDef();
         }
         DecimalFormat r3 = new DecimalFormat("0.000");
         Instant finish = Instant.now();

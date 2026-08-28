@@ -20,7 +20,7 @@ import java.util.List;
 
 public class VideoSection extends Section {
     private static String translateCooldown(CooldownUtils.CooldownType cooldownType, ExtrasPlayer player) {
-        switch (cooldownType) {
+        /*switch (cooldownType) {
             case TITLE -> {
                 return BedrockLocale.CROSSHAIR;
             }
@@ -30,12 +30,13 @@ public class VideoSection extends Section {
             case DISABLED -> {
                 return BedrockLocale.OPTIONS.OFF;
             }
-        }
+        }*/
         return "";
     }
 
     @Override
     public void build(BedrockForm menu, GeyserSession session, ExtrasPlayer player) {
+        /*
         if (session.getGeyser().config().gameplay().showCooldown() != CooldownUtils.CooldownType.DISABLED) {
             LinkedHashMap<String, CooldownUtils.CooldownType> cooldownTypes = new LinkedHashMap<>();
             for (CooldownUtils.CooldownType cooldownType : CooldownUtils.CooldownType.values()) {
@@ -51,6 +52,7 @@ public class VideoSection extends Section {
                 player.getPreferences().setAdjustCooldownWithPing(b);
             }));
         }
+        */
         menu.add(new MappedDropdown<>(player.translateGE("ge.settings.video.lockedCameraPerspective"),
                 Perspectives.buildTranslations(session),
                 player.getPreferences().getLockedPerspective(),

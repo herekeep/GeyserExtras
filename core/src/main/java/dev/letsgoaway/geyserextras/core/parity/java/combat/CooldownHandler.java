@@ -116,6 +116,7 @@ public class CooldownHandler {
         if (position.equals(CooldownUtils.CooldownType.DISABLED)) return;
 
         if (digTicks != -1 || progress == 1.0) {
+            /*
             switch (session.getPreferencesCache().getCooldownPreference()) {
                 case TITLE -> {
                     if (readyToAttack && !lastCharSent.equals(crosshairAttackReady)) {
@@ -133,9 +134,10 @@ public class CooldownHandler {
                     }
                 }
             }
+            */
             return;
         }
-        switch (session.getPreferencesCache().getCooldownPreference()) {
+        /*switch (session.getPreferencesCache().getCooldownPreference()) {
             case TITLE -> {
                 int max = (crosshair.length - 1);
                 // java math is so good i love it alot
@@ -186,7 +188,7 @@ public class CooldownHandler {
                 lastCharSent = curChar.toString();
                 player.sendActionbarTitle(lastCharSent);
             }
-        }
+        }*/
     }
 
     public double getCooldownPeriod() {

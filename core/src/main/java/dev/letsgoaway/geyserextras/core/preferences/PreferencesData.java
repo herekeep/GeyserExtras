@@ -30,7 +30,7 @@ public class PreferencesData {
 
     private transient final ExtrasPlayer player;
     private transient final GeyserSession session;
-    public CooldownUtils.CooldownType cooldownType = CooldownUtils.CooldownType.TITLE;
+    public CooldownUtils.CooldownType cooldownType = null;
     public boolean showCoordinates;
 
     public boolean advancedTooltips = false;
