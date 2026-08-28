@@ -7,7 +7,6 @@ import dev.letsgoaway.geyserextras.core.form.elements.MappedDropdown;
 import dev.letsgoaway.geyserextras.core.form.elements.Toggle;
 import dev.letsgoaway.geyserextras.core.locale.BedrockLocale;
 import dev.letsgoaway.geyserextras.core.preferences.Perspectives;
-import dev.letsgoaway.geyserextras.core.parity.java.combat.CooldownType;
 import org.geysermc.cumulus.util.FormImage;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.ChatColor;
@@ -19,7 +18,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 
 public class VideoSection extends Section {
-    private String translateCooldown(CooldownType type, ExtrasPlayer player) {
+    private String translateCooldown(CooldownUtils.CooldownType type, ExtrasPlayer player) {
         switch (type) {
             case CROSSHAIR -> {
                 return player.translate("options.attack.crosshair");
@@ -27,7 +26,7 @@ public class VideoSection extends Section {
             case HOTBAR -> {
                 return player.translate("options.attack.hotbar");
             }
-            case OFF -> {
+            case DISABLED -> {
                 return player.translate("options.off");
             }
             default -> {
@@ -38,44 +37,26 @@ public class VideoSection extends Section {
 
     @Override
     public void build(BedrockForm menu, GeyserSession session, ExtrasPlayer player) {
-        if (session.getGeyser().config().gameplay().cooldownType() != CooldownUtils.CooldownType.OFF) {
-            LinkedHashMap<String, CooldownType> cooldownTypes = new LinkedHashMap<>();
+        if (session.getGeyser().config().gameplay().cooldownType() != CooldownUtils.CooldownType.DISABLED) {
+            LinkedHashMap<String, CooldownUtils.CooldownType> cooldownTypes = new LinkedHashMap<>();
             for (CooldownUtils.CooldownType nativeType : CooldownUtils.CooldownType.values()) {
-                CooldownType customType;
-                switch (nativeType) {
-                    case CROSSHAIR -> customType = CooldownType.CROSSHAIR;
-                    case HOTBAR -> customType = CooldownType.HOTBAR;
-                    default -> customType = CooldownType.OFF;
-                }
-                cooldownTypes.put(translateCooldown(customType, player), customType);
+                cooldownTypes.put(translateCooldown(nativeType, player), nativeType);
             }
 
-            CooldownUtils.CooldownType nativePref = session.getPreferencesCache().getCooldownPreference();
-            CooldownType customPref;
-            switch (nativePref) {
-                case CROSSHAIR -> customPref = CooldownType.CROSSHAIR;
-                case HOTBAR -> customPref = CooldownType.HOTBAR;
-                default -> customPref = CooldownType.OFF;
-            }
-            String playerOption = translateCooldown(customPref, player);
+            CooldownUtils.CooldownType currentPref = session.getPreferencesCache().getCooldownPreference();
+            String playerOption = translateCooldown(currentPref, player);
 
             menu.add(new Dropdown(player.translate("options.attackIndicator"),
                     new ArrayList<>(cooldownTypes.keySet()), playerOption, (str) -> {
-                CooldownType selected = null;
-                for (CooldownType type : cooldownTypes.values()) {
+                CooldownUtils.CooldownType selected = null;
+                for (CooldownUtils.CooldownType type : cooldownTypes.values()) {
                     if (translateCooldown(type, player).equals(str)) {
                         selected = type;
                         break;
                     }
                 }
                 if (selected != null) {
-                    CooldownUtils.CooldownType nativeSelected;
-                    switch (selected) {
-                        case CROSSHAIR -> nativeSelected = CooldownUtils.CooldownType.CROSSHAIR;
-                        case HOTBAR -> nativeSelected = CooldownUtils.CooldownType.HOTBAR;
-                        default -> nativeSelected = CooldownUtils.CooldownType.OFF;
-                    }
-                    session.getPreferencesCache().setCooldownPreference(nativeSelected);
+                    session.getPreferencesCache().setCooldownPreference(selected);
                 }
             }));
         }
