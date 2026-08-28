@@ -19,40 +19,38 @@ import java.util.LinkedHashMap;
 import java.util.List;
 
 public class VideoSection extends Section {
-    private static String translateCooldown(CooldownUtils.CooldownType cooldownType, ExtrasPlayer player) {
-        /*switch (cooldownType) {
-            case TITLE -> {
-                return BedrockLocale.CROSSHAIR;
-            }
-            case ACTIONBAR -> {
-                return player.translate("options.attack.hotbar");
-            }
-            case DISABLED -> {
-                return BedrockLocale.OPTIONS.OFF;
-            }
-        }*/
+    private String translateCooldown(CooldownUtils.CooldownType type, ExtrasPlayer player) {
+        switch (type) {
+        case CROSSHAIR -> {
+            return player.translate("options.attack.crosshair");
+        }
+        case HOTBAR -> {
+            return player.translate("options.attack.hotbar");
+        }
+        case OFF -> {
+            return player.translate("options.off");
+        }
+       }
         return "";
     }
 
     @Override
-    public void build(BedrockForm menu, GeyserSession session, ExtrasPlayer player) {
-        /*
-        if (session.getGeyser().config().gameplay().showCooldown() != CooldownUtils.CooldownType.DISABLED) {
-            LinkedHashMap<String, CooldownUtils.CooldownType> cooldownTypes = new LinkedHashMap<>();
-            for (CooldownUtils.CooldownType cooldownType : CooldownUtils.CooldownType.values()) {
-                cooldownTypes.put(translateCooldown(cooldownType, player), cooldownType);
-            }
-            String playerOption = translateCooldown(session.getPreferencesCache().getCooldownPreference(), player);
-            menu.add(new Dropdown(player.translate("options.attackIndicator"),
-                    new ArrayList<>(cooldownTypes.keySet()), playerOption, (str) -> {
-                session.getPreferencesCache().setCooldownPreference(cooldownTypes.get(str));
-            }));
-            menu.add(new Slider(player.translateGE("ge.settings.video.attackIndicatorFPS"), 5, 250, 5, player.getPreferences().getIndicatorUpdateRate(), player::startCombatTickThread));
-            menu.add(new Toggle(player.translateGE("ge.settings.video.adjustCooldownWithPing"), player.getPreferences().isAdjustCooldownWithPing(), (b) -> {
-                player.getPreferences().setAdjustCooldownWithPing(b);
-            }));
+public void build(BedrockForm menu, GeyserSession session, ExtrasPlayer player) {
+    if (session.getGeyser().config().gameplay().cooldownType() != CooldownUtils.CooldownType.OFF) {
+        LinkedHashMap<String, CooldownUtils.CooldownType> cooldownTypes = new LinkedHashMap<>();
+        for (CooldownUtils.CooldownType cooldownType : CooldownUtils.CooldownType.values()) {
+            cooldownTypes.put(translateCooldown(cooldownType, player), cooldownType);
         }
-        */
+        String playerOption = translateCooldown(session.getPreferencesCache().getCooldownPreference(), player);
+        menu.add(new Dropdown(player.translate("options.attackIndicator"),
+                new ArrayList<>(cooldownTypes.keySet()), playerOption, (str) -> {
+            session.getPreferencesCache().setCooldownPreference(cooldownTypes.get(str));
+        }));
+        menu.add(new Slider(player.translateGE("ge.settings.video.attackIndicatorFPS"), 5, 250, 5, player.getPreferences().getIndicatorUpdateRate(), player::startCombatTickThread));
+        menu.add(new Toggle(player.translateGE("ge.settings.video.adjustCooldownWithPing"), player.getPreferences().isAdjustCooldownWithPing(), (b) -> {
+            player.getPreferences().setAdjustCooldownWithPing(b);
+        }));
+    }
         menu.add(new MappedDropdown<>(player.translateGE("ge.settings.video.lockedCameraPerspective"),
                 Perspectives.buildTranslations(session),
                 player.getPreferences().getLockedPerspective(),

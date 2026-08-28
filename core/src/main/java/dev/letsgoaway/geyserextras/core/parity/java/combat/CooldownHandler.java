@@ -113,12 +113,11 @@ public class CooldownHandler {
     // this code is shit
     private void sendCooldown(double progress) {
         CooldownUtils.CooldownType position = session.getPreferencesCache().getCooldownPreference();
-        if (position.equals(CooldownUtils.CooldownType.DISABLED)) return;
+        if (position.equals(CooldownUtils.CooldownType.OFF)) return;
 
         if (digTicks != -1 || progress == 1.0) {
-            /*
             switch (session.getPreferencesCache().getCooldownPreference()) {
-                case TITLE -> {
+                case CROSSHAIR -> {
                     if (readyToAttack && !lastCharSent.equals(crosshairAttackReady)) {
                         lastCharSent = crosshairAttackReady;
                         player.sendTitle("", lastCharSent, 0, Integer.MAX_VALUE, 0);
@@ -127,18 +126,17 @@ public class CooldownHandler {
                         player.resetTitle();
                     }
                 }
-                case ACTIONBAR -> {
+                case HOTBAR -> {
                     if (!lastCharSent.isEmpty()) {
                         lastCharSent = "";
                         player.sendActionbarTitle(" ");
                     }
                 }
             }
-            */
             return;
         }
-        /*switch (session.getPreferencesCache().getCooldownPreference()) {
-            case TITLE -> {
+        switch (session.getPreferencesCache().getCooldownPreference()) {
+            case CROSSHAIR -> {
                 int max = (crosshair.length - 1);
                 // java math is so good i love it alot
                 int cooldown = Math.toIntExact(Math.round(progress * max + 0.475f));
@@ -152,7 +150,7 @@ public class CooldownHandler {
                 lastCharSent = curChar;
                 player.sendTitle("", lastCharSent, 0, MathUtils.ceil((float) getCooldownPeriod()), 0);
             }
-            case ACTIONBAR -> {
+            case HOTBAR -> {
                 int max = (hotbar.length - 1);
 
                 int cooldown = Math.toIntExact(Math.round(progress * max + 0.475f));
@@ -188,7 +186,7 @@ public class CooldownHandler {
                 lastCharSent = curChar.toString();
                 player.sendActionbarTitle(lastCharSent);
             }
-        }*/
+        }
     }
 
     public double getCooldownPeriod() {
