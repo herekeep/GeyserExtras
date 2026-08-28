@@ -51,7 +51,7 @@ public enum Action {
             case OPEN_STATISTICS -> {
                 session.setWaitingForStatistics(true);
                 //ServerboundClientCommandPacket packet = new ServerboundClientCommandPacket(ClientCommand.STATS);
-                session.sendDownstreamGamePacket(packet);
+                //session.sendDownstreamGamePacket(packet);
             }
             case PLAYER_LIST -> {
                 if (GE.getConfig().isEnableGeyserExtrasMenu()){
