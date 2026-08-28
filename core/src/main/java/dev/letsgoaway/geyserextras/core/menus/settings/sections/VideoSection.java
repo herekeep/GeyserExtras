@@ -4,7 +4,6 @@ import dev.letsgoaway.geyserextras.core.ExtrasPlayer;
 import dev.letsgoaway.geyserextras.core.form.BedrockForm;
 import dev.letsgoaway.geyserextras.core.form.elements.Dropdown;
 import dev.letsgoaway.geyserextras.core.form.elements.MappedDropdown;
-import dev.letsgoaway.geyserextras.core.form.elements.Slider;
 import dev.letsgoaway.geyserextras.core.form.elements.Toggle;
 import dev.letsgoaway.geyserextras.core.locale.BedrockLocale;
 import dev.letsgoaway.geyserextras.core.preferences.Perspectives;
@@ -21,66 +20,88 @@ import java.util.List;
 
 public class VideoSection extends Section {
     private String translateCooldown(CooldownType type, ExtrasPlayer player) {
-    switch (type) {
-        case CROSSHAIR -> {
-            return player.translate("options.attack.crosshair");
-        }
-        case HOTBAR -> {
-            return player.translate("options.attack.hotbar");
-        }
-        case OFF -> {
-            return player.translate("options.off");
-        }
-        default -> {
-            return "Unknown";
+        switch (type) {
+            case CROSSHAIR -> {
+                return player.translate("options.attack.crosshair");
+            }
+            case HOTBAR -> {
+                return player.translate("options.attack.hotbar");
+            }
+            case OFF -> {
+                return player.translate("options.off");
+            }
+            default -> {
+                return "Unknown";
+            }
         }
     }
-}
 
     @Override
-public void build(BedrockForm menu, GeyserSession session, ExtrasPlayer player) {
-    if (session.getGeyser().config().gameplay().cooldownType() != CooldownUtils.CooldownType.OFF) {
-    LinkedHashMap<String, CooldownType> cooldownTypes = new LinkedHashMap<>();
-    for (CooldownUtils.CooldownType nativeType : CooldownUtils.CooldownType.values()) {
-        CooldownType customType;
-        switch (nativeType) {
-            case CROSSHAIR -> customType = CooldownType.CROSSHAIR;
-            case HOTBAR -> customType = CooldownType.HOTBAR;
-            default -> customType = CooldownType.OFF;
-        }
-        cooldownTypes.put(translateCooldown(customType, player), customType);
-    }
-    
-    // 获取当前玩家偏好
-    CooldownUtils.CooldownType nativePref = session.getPreferencesCache().getCooldownPreference();
-    CooldownType customPref;
-    switch (nativePref) {
-        case CROSSHAIR -> customPref = CooldownType.CROSSHAIR;
-        case HOTBAR -> customPref = CooldownType.HOTBAR;
-        default -> customPref = CooldownType.OFF;
-    }
-    String playerOption = translateCooldown(customPref, player);
-    
-    menu.add(new Dropdown(player.translate("options.attackIndicator"),
-            new ArrayList<>(cooldownTypes.keySet()), playerOption, (str) -> {
-        // 从字符串获取对应的自定义枚举，再转回原生枚举
-        CooldownType selected = null;
-        for (CooldownType type : cooldownTypes.values()) {
-            if (translateCooldown(type, player).equals(str)) {
-                selected = type;
-                break;
+    public void build(BedrockForm menu, GeyserSession session, ExtrasPlayer player) {
+        if (session.getGeyser().config().gameplay().cooldownType() != CooldownUtils.CooldownType.OFF) {
+            LinkedHashMap<String, CooldownType> cooldownTypes = new LinkedHashMap<>();
+            for (CooldownUtils.CooldownType nativeType : CooldownUtils.CooldownType.values()) {
+                CooldownType customType;
+                switch (nativeType) {
+                    case CROSSHAIR -> customType = CooldownType.CROSSHAIR;
+                    case HOTBAR -> customType = CooldownType.HOTBAR;
+                    default -> customType = CooldownType.OFF;
+                }
+                cooldownTypes.put(translateCooldown(customType, player), customType);
             }
-        }
-        if (selected != null) {
-            CooldownUtils.CooldownType nativeSelected;
-            switch (selected) {
-                case CROSSHAIR -> nativeSelected = CooldownUtils.CooldownType.CROSSHAIR;
-                case HOTBAR -> nativeSelected = CooldownUtils.CooldownType.HOTBAR;
-                default -> nativeSelected = CooldownUtils.CooldownType.OFF;
+
+            CooldownUtils.CooldownType nativePref = session.getPreferencesCache().getCooldownPreference();
+            CooldownType customPref;
+            switch (nativePref) {
+                case CROSSHAIR -> customPref = CooldownType.CROSSHAIR;
+                case HOTBAR -> customPref = CooldownType.HOTBAR;
+                default -> customPref = CooldownType.OFF;
             }
-            session.getPreferencesCache().setCooldownPreference(nativeSelected);
+            String playerOption = translateCooldown(customPref, player);
+
+            menu.add(new Dropdown(player.translate("options.attackIndicator"),
+                    new ArrayList<>(cooldownTypes.keySet()), playerOption, (str) -> {
+                CooldownType selected = null;
+                for (CooldownType type : cooldownTypes.values()) {
+                    if (translateCooldown(type, player).equals(str)) {
+                        selected = type;
+                        break;
+                    }
+                }
+                if (selected != null) {
+                    CooldownUtils.CooldownType nativeSelected;
+                    switch (selected) {
+                        case CROSSHAIR -> nativeSelected = CooldownUtils.CooldownType.CROSSHAIR;
+                        case HOTBAR -> nativeSelected = CooldownUtils.CooldownType.HOTBAR;
+                        default -> nativeSelected = CooldownUtils.CooldownType.OFF;
+                    }
+                    session.getPreferencesCache().setCooldownPreference(nativeSelected);
+                }
+            }));
         }
-    }));
+
+        menu.add(new MappedDropdown<>(player.translateGE("ge.settings.video.lockedCameraPerspective"),
+                Perspectives.buildTranslations(session),
+                player.getPreferences().getLockedPerspective(),
+                (pov) -> player.getPreferences().setLockedPerspective(pov)
+        ));
+
+        if (session.getPreferencesCache().isAllowShowCoordinates()) {
+            menu.add(new Toggle(BedrockLocale.SHOW_COORDINATES, session.getPreferencesCache().isPrefersShowCoordinates(), (b) -> {
+                session.getPreferencesCache().setPrefersShowCoordinates(b);
+                session.getPreferencesCache().updateShowCoordinates();
+            }));
+        }
+
+        if (player.getDiagnostics() != null) {
+            menu.add(new Toggle(player.translateGE("ge.settings.video.showFPS"), player.getPreferences().isShowFPS(), (b) -> {
+                player.getPreferences().setShowFPS(b);
+                if (!b && player.getFpsBossBar() != null) {
+                    player.getFpsBossBar().removeBossBar();
+                    player.setFpsBossBar(null);
+                }
+            }));
+        }
 
         menu.add(new Toggle(player.translateGE("ge.settings.video.advancedTooltips"), session.isAdvancedTooltips(), (b) -> {
             if (b != session.isAdvancedTooltips()) {
