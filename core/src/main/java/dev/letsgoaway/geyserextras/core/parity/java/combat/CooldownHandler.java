@@ -112,21 +112,13 @@ public class CooldownHandler {
 
     // this code is shit
     private void sendCooldown(double progress) {
-        CooldownType position;
-org.geysermc.geyser.util.CooldownUtils.CooldownType nativeType = session.getPreferencesCache().getCooldownPreference();
-if (nativeType == null) {
-    position = CooldownType.OFF;
-} else {
-    switch (nativeType) {
-        case CROSSHAIR -> position = CooldownType.CROSSHAIR;
-        case HOTBAR -> position = CooldownType.HOTBAR;
-        default -> position = CooldownType.OFF;
-    }
-}
+        // 强制启用扩展冷却（忽略 Geyser 原生偏好）
+        CooldownType position = CooldownType.CROSSHAIR;
+
         if (position.equals(CooldownType.OFF)) return;
 
         if (digTicks != -1 || progress == 1.0) {
-            switch (session.getPreferencesCache().getCooldownPreference()) {
+            switch (position) {
                 case CROSSHAIR -> {
                     if (readyToAttack && !lastCharSent.equals(crosshairAttackReady)) {
                         lastCharSent = crosshairAttackReady;
@@ -145,10 +137,9 @@ if (nativeType == null) {
             }
             return;
         }
-        switch (session.getPreferencesCache().getCooldownPreference()) {
+        switch (position) {
             case CROSSHAIR -> {
                 int max = (crosshair.length - 1);
-                // java math is so good i love it alot
                 int cooldown = Math.toIntExact(Math.round(progress * max + 0.475f));
                 if (cooldown > max) {
                     cooldown = max;
@@ -162,27 +153,22 @@ if (nativeType == null) {
             }
             case HOTBAR -> {
                 int max = (hotbar.length - 1);
-
                 int cooldown = Math.toIntExact(Math.round(progress * max + 0.475f));
                 if (cooldown > max) {
                     cooldown = max;
                 }
                 StringBuilder curChar = new StringBuilder(" " + hotbar[cooldown]);
-                // TODO: figure out why this wont work
                 if (!GUIElements.ITEM_TEXT_POPUP.isHidden(session) && System.currentTimeMillis() / (lastHotbarTime + getHBStayTime()) < 1.0) {
                     if (session.getGameMode().equals(GameMode.SURVIVAL) || session.getGameMode().equals(GameMode.ADVENTURE)) {
                         curChar.append("\n\n\n");
                     }
                     GeyserItemStack heldItem = session.getPlayerInventory().getItemInHand();
-                    // Geyser adds a custom enchantment i think
-                    // but all i know is that it adds a blank extra line
                     if (heldItem.asItem().equals(Items.DEBUG_STICK)) {
                         curChar.append("\n\n");
                     }
                     ItemEnchantments enchantments = heldItem.getComponent(DataComponentTypes.ENCHANTMENTS);
                     if (enchantments != null) {
                         for (int enchID : enchantments.getEnchantments().keySet()) {
-                            // SWEEPING_EDGE, java only so it doesnt show on the item text popup
                             if (enchID != 22) {
                                 curChar.append("\n\n");
                             }
@@ -219,16 +205,13 @@ if (nativeType == null) {
     }
 
     private double getHBStayTime() {
-        double textTime = 3.5; // 3 seconds is how long the item text popup stay time is
+        double textTime = 3.5;
         GeyserItemStack item = session.getPlayerInventory().getItemInHand();
         ItemEnchantments enchantments = item.getComponent(DataComponentTypes.ENCHANTMENTS);
         if (enchantments != null) {
-
             for (int enchID : enchantments.getEnchantments().keySet()) {
-                // SWEEPING_EDGE, java only so it doesnt show on the item text popup
                 if (enchID != 22) {
-                    textTime += 0.75; // + .75 seconds are added on the bedrock client
-                    // for each enchantment so you have time to read it
+                    textTime += 0.75;
                 }
             }
         }
