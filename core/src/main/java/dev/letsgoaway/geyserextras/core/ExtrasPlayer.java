@@ -196,17 +196,18 @@ public class ExtrasPlayer {
             session.camera().hideElement(GuiElement.PAPER_DOLL);
         }
 
-
         if (session.getDimensionType().isNetherLike() && session.camera().fogEffects().contains(DimensionUtils.BEDROCK_FOG_HELL)) {
             session.camera().removeFog(DimensionUtils.BEDROCK_FOG_HELL);
         }
-
 
         if (fpsBossBar == null && preferences.isShowFPS() && diagnostics != null) {
             createFpsBossBar();
         }
 
         calculateAveragePing();
+
+        // ========== 关键修复：调用冷却处理器 ==========
+        cooldownHandler.tick();
     }
 
     private void calculateAveragePing() {
