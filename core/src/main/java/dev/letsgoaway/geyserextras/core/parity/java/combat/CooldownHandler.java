@@ -111,99 +111,13 @@ public class CooldownHandler {
         sendCooldown(cooldown);
     }
 
-    // this code is shit
+    // ============================================================
+    // 完全禁用扩展冷却，让 Geyser 原生接管
+    // 确保 config.yml 中 cooldown-type: crosshair 或 hotbar
+    // ============================================================
     private void sendCooldown(double progress) {
-        SERVER.log("[DEBUG] sendCooldown called, progress=" + progress);
-        
-        CooldownType position = CooldownType.CROSSHAIR;
-        SERVER.log("[DEBUG] position=" + position);
-        
-        if (position.equals(CooldownType.OFF)) {
-            SERVER.log("[DEBUG] position is OFF, returning");
-            return;
-        }
-
-        SERVER.log("[DEBUG] digTicks=" + digTicks + ", progress=" + progress + ", readyToAttack=" + readyToAttack);
-        
-        if (digTicks != -1 || progress == 1.0) {
-            SERVER.log("[DEBUG] Entering first switch (digTicks or progress==1.0)");
-            switch (position) {
-                case CROSSHAIR -> {
-                    SERVER.log("[DEBUG] CROSSHAIR branch - readyToAttack=" + readyToAttack + ", lastCharSent=" + lastCharSent);
-                    if (readyToAttack && !lastCharSent.equals(crosshairAttackReady)) {
-                        lastCharSent = crosshairAttackReady;
-                        player.sendTitle("", lastCharSent, 0, Integer.MAX_VALUE, 0);
-                        SERVER.log("[DEBUG] Sent CROSSHAIR ready title");
-                    } else if (!readyToAttack && !lastCharSent.isEmpty()) {
-                        lastCharSent = "";
-                        player.resetTitle();
-                        SERVER.log("[DEBUG] Reset title");
-                    }
-                }
-                case HOTBAR -> {
-                    SERVER.log("[DEBUG] HOTBAR branch");
-                    if (!lastCharSent.isEmpty()) {
-                        lastCharSent = "";
-                        player.sendActionbarTitle(" ");
-                        SERVER.log("[DEBUG] Sent HOTBAR actionbar");
-                    }
-                }
-            }
-            return;
-        }
-        
-        SERVER.log("[DEBUG] Entering second switch (normal cooldown progression)");
-        switch (position) {
-            case CROSSHAIR -> {
-                int max = (crosshair.length - 1);
-                int cooldown = Math.toIntExact(Math.round(progress * max + 0.475f));
-                if (cooldown > max) {
-                    cooldown = max;
-                }
-                String curChar = crosshair[cooldown];
-                SERVER.log("[DEBUG] CROSSHAIR cooldown=" + cooldown + ", curChar=" + curChar);
-                if (lastCharSent.equals(curChar)) {
-                    SERVER.log("[DEBUG] curChar same as last, skipping");
-                    return;
-                }
-                lastCharSent = curChar;
-                player.sendTitle("", lastCharSent, 0, MathUtils.ceil((float) getCooldownPeriod()), 0);
-                SERVER.log("[DEBUG] Sent CROSSHAIR cooldown title");
-            }
-            case HOTBAR -> {
-                int max = (hotbar.length - 1);
-                int cooldown = Math.toIntExact(Math.round(progress * max + 0.475f));
-                if (cooldown > max) {
-                    cooldown = max;
-                }
-                StringBuilder curChar = new StringBuilder(" " + hotbar[cooldown]);
-                if (!GUIElements.ITEM_TEXT_POPUP.isHidden(session) && System.currentTimeMillis() / (lastHotbarTime + getHBStayTime()) < 1.0) {
-                    if (session.getGameMode().equals(GameMode.SURVIVAL) || session.getGameMode().equals(GameMode.ADVENTURE)) {
-                        curChar.append("\n\n\n");
-                    }
-                    GeyserItemStack heldItem = session.getPlayerInventory().getItemInHand();
-                    if (heldItem.asItem().equals(Items.DEBUG_STICK)) {
-                        curChar.append("\n\n");
-                    }
-                    ItemEnchantments enchantments = heldItem.getComponent(DataComponentTypes.ENCHANTMENTS);
-                    if (enchantments != null) {
-                        for (int enchID : enchantments.getEnchantments().keySet()) {
-                            if (enchID != 22) {
-                                curChar.append("\n\n");
-                            }
-                        }
-                    }
-                }
-                curChar.append(" ");
-                if (lastCharSent.contentEquals(curChar)) {
-                    SERVER.log("[DEBUG] HOTBAR curChar same as last, skipping");
-                    return;
-                }
-                lastCharSent = curChar.toString();
-                player.sendActionbarTitle(lastCharSent);
-                SERVER.log("[DEBUG] Sent HOTBAR cooldown actionbar");
-            }
-        }
+        // 完全禁用，让 Geyser 原生处理
+        return;
     }
 
     public double getCooldownPeriod() {
