@@ -25,6 +25,7 @@ import org.geysermc.geyser.api.event.bedrock.*;
 import org.geysermc.geyser.api.event.lifecycle.GeyserPostInitializeEvent;
 import org.geysermc.geyser.api.event.lifecycle.GeyserPreReloadEvent;
 import org.geysermc.geyser.api.event.lifecycle.GeyserShutdownEvent;
+import org.geysermc.geyser.api.event.lifecycle.GeyserTickEvent;
 import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.UUID;
@@ -55,8 +56,6 @@ public class GeyserExtras implements EventRegistrar {
             InitializeLogger.endNoDone();
             return;
         }
-
-
 
         geyserApi = GeyserApi.api();
 
@@ -93,6 +92,10 @@ public class GeyserExtras implements EventRegistrar {
 
         // Packs
         geyserApi.eventBus().subscribe(this, SessionLoadResourcePacksEvent.class, this::onLoadPacks);
+        
+        // ========== 关键修复：注册 tick 事件 ==========
+        geyserApi.eventBus().subscribe(this, GeyserTickEvent.class, this::onTick);
+        
         connections = new ConcurrentHashMap<>();
         javaConnections = new ConcurrentHashMap<>();
 
@@ -116,6 +119,11 @@ public class GeyserExtras implements EventRegistrar {
         }
     }
 
+    // ========== 添加 tick 事件处理器 ==========
+    public void onTick(GeyserTickEvent event) {
+        serverTick();
+    }
+
     public void onGeyserInitialize(GeyserPostInitializeEvent init) {
         if (!ServerType.isExtension()) {
             GeyserHandler.register();
@@ -127,13 +135,30 @@ public class GeyserExtras implements EventRegistrar {
         }
     }
 
+    // ========== 修复：在登录时创建 ExtrasPlayer ==========
     public void onSessionLogin(SessionLoginEvent ev) {
-
+        GeyserConnection connection = ev.connection();
+        String xuid = connection.xuid();
+        // 如果已存在则先移除（防止重复）
+        if (connections.containsKey(xuid)) {
+            connections.remove(xuid);
+        }
+        // 创建 ExtrasPlayer 并放入 connections
+        ExtrasPlayer player = SERVER.createPlayer(connection);
+        connections.put(xuid, player);
+        SERVER.log("[DEBUG] Created ExtrasPlayer for " + connection.bedrockUsername() + " (XUID: " + xuid + ")");
     }
 
     public void onSessionJoin(SessionJoinEvent ev) {
-        connections.get(ev.connection().xuid()).startGame();
-
+        String xuid = ev.connection().xuid();
+        ExtrasPlayer player = connections.get(xuid);
+        if (player == null) {
+            // 如果还没有创建，则在这里创建
+            player = SERVER.createPlayer(ev.connection());
+            connections.put(xuid, player);
+            SERVER.warn("[DEBUG] ExtrasPlayer was null on SessionJoin, created one now for " + ev.connection().bedrockUsername());
+        }
+        player.startGame();
     }
 
     public void onSessionRemove(SessionDisconnectEvent ev) {
@@ -161,11 +186,15 @@ public class GeyserExtras implements EventRegistrar {
         if (connections.remove(ev.connection().xuid()) == null) {
             SERVER.warn("Could not remove user.");
         }
-
     }
 
     public void onEmoteEvent(ClientEmoteEvent ev) {
-        connections.get(ev.connection().xuid()).onEmoteEvent(ev);
+        ExtrasPlayer player = connections.get(ev.connection().xuid());
+        if (player != null) {
+            player.onEmoteEvent(ev);
+        } else {
+            SERVER.warn("Received emote event for unknown player: " + ev.connection().bedrockUsername());
+        }
     }
 
     public void onGeyserReload(GeyserPreReloadEvent ignored) {
@@ -177,9 +206,14 @@ public class GeyserExtras implements EventRegistrar {
     }
 
     public void onLoadPacks(SessionLoadResourcePacksEvent ev) {
-        connections.remove(ev.connection().xuid());
-        connections.put(ev.connection().xuid(), SERVER.createPlayer(ev.connection()));
-        PackCacheUtils.onPackLoadEvent(connections.get(ev.connection().xuid()), ev);
+        // 这里会由事件触发创建，但 onSessionLogin 已经创建了，可以覆盖或忽略
+        String xuid = ev.connection().xuid();
+        if (!connections.containsKey(xuid)) {
+            ExtrasPlayer player = SERVER.createPlayer(ev.connection());
+            connections.put(xuid, player);
+        }
+        ExtrasPlayer player = connections.get(xuid);
+        PackCacheUtils.onPackLoadEvent(player, ev);
     }
 
     public JavaPreferencesData getJavaPreferencesData(UUID javaUUID) {
