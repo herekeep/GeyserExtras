@@ -18,6 +18,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.ItemEnchantm
 
 import java.util.List;
 
+import static dev.letsgoaway.geyserextras.core.GeyserExtras.SERVER;
 
 public class CooldownHandler {
     private static final List<Item> readyToAttackIndicatorItems = List.of(
@@ -55,9 +56,6 @@ public class CooldownHandler {
     @Getter
     @Setter
     public double attackSpeed = 4.0;
-    /**
-     * -1 means the player is not digging
-     */
     @Setter
     @Getter
     public int digTicks = -1;
@@ -68,7 +66,6 @@ public class CooldownHandler {
     private long lastHotbarTime = 0;
     @Setter
     private long lastMouseoverID = 0;
-    // Shield stuff
     @Setter
     @Getter
     private boolean skipNextItemUse1 = false;
@@ -110,33 +107,49 @@ public class CooldownHandler {
         sendCooldown(cooldown);
     }
 
-    // this code is shit
     private void sendCooldown(double progress) {
-        // 强制启用扩展冷却（忽略 Geyser 原生偏好）
+        SERVER.info("[DEBUG] sendCooldown called, progress=" + progress);
+        
         CooldownType position = CooldownType.CROSSHAIR;
+        SERVER.info("[DEBUG] position=" + position);
+        
+        if (position.equals(CooldownType.OFF)) {
+            SERVER.info("[DEBUG] position is OFF, returning");
+            return;
+        }
 
-        if (position.equals(CooldownType.OFF)) return;
-
+        SERVER.info("[DEBUG] digTicks=" + digTicks + ", progress=" + progress + ", readyToAttack=" + readyToAttack);
+        
         if (digTicks != -1 || progress == 1.0) {
+            SERVER.info("[DEBUG] Entering first switch (digTicks or progress==1.0)");
             switch (position) {
                 case CROSSHAIR -> {
+                    SERVER.info("[DEBUG] CROSSHAIR branch - readyToAttack=" + readyToAttack + ", lastCharSent=" + lastCharSent);
                     if (readyToAttack && !lastCharSent.equals(crosshairAttackReady)) {
                         lastCharSent = crosshairAttackReady;
                         player.sendTitle("", lastCharSent, 0, Integer.MAX_VALUE, 0);
+                        SERVER.info("[DEBUG] Sent CROSSHAIR ready title");
                     } else if (!readyToAttack && !lastCharSent.isEmpty()) {
                         lastCharSent = "";
                         player.resetTitle();
+                        SERVER.info("[DEBUG] Reset title");
+                    } else {
+                        SERVER.info("[DEBUG] No action in CROSSHAIR first branch");
                     }
                 }
                 case HOTBAR -> {
+                    SERVER.info("[DEBUG] HOTBAR branch");
                     if (!lastCharSent.isEmpty()) {
                         lastCharSent = "";
                         player.sendActionbarTitle(" ");
+                        SERVER.info("[DEBUG] Sent HOTBAR actionbar");
                     }
                 }
             }
             return;
         }
+        
+        SERVER.info("[DEBUG] Entering second switch (normal cooldown progression)");
         switch (position) {
             case CROSSHAIR -> {
                 int max = (crosshair.length - 1);
@@ -145,11 +158,14 @@ public class CooldownHandler {
                     cooldown = max;
                 }
                 String curChar = crosshair[cooldown];
+                SERVER.info("[DEBUG] CROSSHAIR cooldown=" + cooldown + ", curChar=" + curChar);
                 if (lastCharSent.equals(curChar)) {
+                    SERVER.info("[DEBUG] curChar same as last, skipping");
                     return;
                 }
                 lastCharSent = curChar;
                 player.sendTitle("", lastCharSent, 0, MathUtils.ceil((float) getCooldownPeriod()), 0);
+                SERVER.info("[DEBUG] Sent CROSSHAIR cooldown title");
             }
             case HOTBAR -> {
                 int max = (hotbar.length - 1);
@@ -158,6 +174,7 @@ public class CooldownHandler {
                     cooldown = max;
                 }
                 StringBuilder curChar = new StringBuilder(" " + hotbar[cooldown]);
+                SERVER.info("[DEBUG] HOTBAR cooldown=" + cooldown);
                 if (!GUIElements.ITEM_TEXT_POPUP.isHidden(session) && System.currentTimeMillis() / (lastHotbarTime + getHBStayTime()) < 1.0) {
                     if (session.getGameMode().equals(GameMode.SURVIVAL) || session.getGameMode().equals(GameMode.ADVENTURE)) {
                         curChar.append("\n\n\n");
@@ -177,10 +194,12 @@ public class CooldownHandler {
                 }
                 curChar.append(" ");
                 if (lastCharSent.contentEquals(curChar)) {
+                    SERVER.info("[DEBUG] HOTBAR curChar same as last, skipping");
                     return;
                 }
                 lastCharSent = curChar.toString();
                 player.sendActionbarTitle(lastCharSent);
+                SERVER.info("[DEBUG] Sent HOTBAR cooldown actionbar");
             }
         }
     }

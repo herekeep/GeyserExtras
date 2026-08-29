@@ -240,52 +240,58 @@ public class ExtrasPlayer {
     }
 
     public void resetTitle() {
+        SERVER.info("[DEBUG] resetTitle called");
         SetTitlePacket titlePacket = new SetTitlePacket();
         titlePacket.setType(SetTitlePacket.Type.CLEAR);
         titlePacket.setText("");
         titlePacket.setXuid("");
         titlePacket.setPlatformOnlineId("");
         session.sendUpstreamPacket(titlePacket);
+        SERVER.info("[DEBUG] CLEAR packet sent");
     }
 
     public void sendTitle(String title, String subtitle, int fadeIn, int stay, int fadeOut) {
-    // 发送主标题
-    SetTitlePacket titlePacket = new SetTitlePacket();
-    titlePacket.setType(SetTitlePacket.Type.TITLE);
-    titlePacket.setText(title != null ? title : "");
-    titlePacket.setXuid("");
-    titlePacket.setPlatformOnlineId("");
-    session.sendUpstreamPacket(titlePacket);
-    
-    // 发送副标题（如果有）
-    if (subtitle != null && !subtitle.isEmpty()) {
-        SetTitlePacket subPacket = new SetTitlePacket();
-        subPacket.setType(SetTitlePacket.Type.SUBTITLE);
-        subPacket.setText(subtitle);
-        subPacket.setXuid("");
-        subPacket.setPlatformOnlineId("");
-        session.sendUpstreamPacket(subPacket);
+        SERVER.info("[DEBUG] sendTitle called - title=\"" + title + "\", subtitle=\"" + subtitle + "\", stay=" + stay);
+        
+        SetTitlePacket titlePacket = new SetTitlePacket();
+        titlePacket.setType(SetTitlePacket.Type.TITLE);
+        titlePacket.setText(title != null ? title : "");
+        titlePacket.setXuid("");
+        titlePacket.setPlatformOnlineId("");
+        session.sendUpstreamPacket(titlePacket);
+        SERVER.info("[DEBUG] TITLE packet sent");
+        
+        if (subtitle != null && !subtitle.isEmpty()) {
+            SetTitlePacket subPacket = new SetTitlePacket();
+            subPacket.setType(SetTitlePacket.Type.SUBTITLE);
+            subPacket.setText(subtitle);
+            subPacket.setXuid("");
+            subPacket.setPlatformOnlineId("");
+            session.sendUpstreamPacket(subPacket);
+            SERVER.info("[DEBUG] SUBTITLE packet sent");
+        }
+        
+        SetTitlePacket timesPacket = new SetTitlePacket();
+        timesPacket.setType(SetTitlePacket.Type.TIMES);
+        timesPacket.setFadeInTime(fadeIn);
+        timesPacket.setStayTime(stay);
+        timesPacket.setFadeOutTime(fadeOut);
+        timesPacket.setXuid("");
+        timesPacket.setPlatformOnlineId("");
+        session.sendUpstreamPacket(timesPacket);
+        SERVER.info("[DEBUG] TIMES packet sent");
     }
-    
-    // 设置标题显示时间
-    SetTitlePacket timesPacket = new SetTitlePacket();
-    timesPacket.setType(SetTitlePacket.Type.TIMES);
-    timesPacket.setFadeInTime(fadeIn);
-    timesPacket.setStayTime(stay);
-    timesPacket.setFadeOutTime(fadeOut);
-    timesPacket.setXuid("");
-    timesPacket.setPlatformOnlineId("");
-    session.sendUpstreamPacket(timesPacket);
-     }
 
-public void sendActionbarTitle(String text) {
-    SetTitlePacket packet = new SetTitlePacket();
-    packet.setType(SetTitlePacket.Type.ACTIONBAR);
-    packet.setText(text != null ? text : "");
-    packet.setXuid("");
-    packet.setPlatformOnlineId("");
-    session.sendUpstreamPacket(packet);
-     }
+    public void sendActionbarTitle(String text) {
+        SERVER.info("[DEBUG] sendActionbarTitle called - text=\"" + text + "\"");
+        SetTitlePacket packet = new SetTitlePacket();
+        packet.setType(SetTitlePacket.Type.ACTIONBAR);
+        packet.setText(text != null ? text : "");
+        packet.setXuid("");
+        packet.setPlatformOnlineId("");
+        session.sendUpstreamPacket(packet);
+        SERVER.info("[DEBUG] ACTIONBAR packet sent");
+    }
 
     public void sendForm(BedrockForm form) {
         if (IsAvailable.floodgate()) {
