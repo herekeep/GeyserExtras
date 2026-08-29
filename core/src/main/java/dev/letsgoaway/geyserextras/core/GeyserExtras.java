@@ -25,11 +25,13 @@ import org.geysermc.geyser.api.event.bedrock.*;
 import org.geysermc.geyser.api.event.lifecycle.GeyserPostInitializeEvent;
 import org.geysermc.geyser.api.event.lifecycle.GeyserPreReloadEvent;
 import org.geysermc.geyser.api.event.lifecycle.GeyserShutdownEvent;
-import org.geysermc.geyser.api.event.lifecycle.GeyserTickEvent;
 import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class GeyserExtras implements EventRegistrar {
     public static GeyserExtras GE;
@@ -40,6 +42,8 @@ public class GeyserExtras implements EventRegistrar {
     @Getter
     @Setter
     private GeyserExtrasConfig config;
+
+    private ScheduledExecutorService tickExecutor;
 
     public GeyserExtras(Server server) {
         GE = this;
@@ -92,12 +96,13 @@ public class GeyserExtras implements EventRegistrar {
 
         // Packs
         geyserApi.eventBus().subscribe(this, SessionLoadResourcePacksEvent.class, this::onLoadPacks);
-        
-        // ========== 关键修复：注册 tick 事件 ==========
-        geyserApi.eventBus().subscribe(this, GeyserTickEvent.class, this::onTick);
-        
+
         connections = new ConcurrentHashMap<>();
         javaConnections = new ConcurrentHashMap<>();
+
+        // ========== 启动定时任务，每 50ms 执行一次 serverTick ==========
+        tickExecutor = Executors.newSingleThreadScheduledExecutor();
+        tickExecutor.scheduleAtFixedRate(this::serverTick, 0, 50, TimeUnit.MILLISECONDS);
 
         if (ServerType.isExtension()) {
             InitializeLogger.end();
@@ -107,9 +112,7 @@ public class GeyserExtras implements EventRegistrar {
     }
 
     /**
-     * Dont use this on proxys, only on servers
-     * Tick individually based on tickrate for each player
-     * on proxys
+     * 每 tick 调用一次，更新所有玩家的状态（包括冷却指示器）
      */
     public void serverTick() {
         for (ExtrasPlayer player : connections.values()) {
@@ -117,11 +120,6 @@ public class GeyserExtras implements EventRegistrar {
                 player.tick();
             }
         }
-    }
-
-    // ========== 添加 tick 事件处理器 ==========
-    public void onTick(GeyserTickEvent event) {
-        serverTick();
     }
 
     public void onGeyserInitialize(GeyserPostInitializeEvent init) {
@@ -139,11 +137,9 @@ public class GeyserExtras implements EventRegistrar {
     public void onSessionLogin(SessionLoginEvent ev) {
         GeyserConnection connection = ev.connection();
         String xuid = connection.xuid();
-        // 如果已存在则先移除（防止重复）
         if (connections.containsKey(xuid)) {
             connections.remove(xuid);
         }
-        // 创建 ExtrasPlayer 并放入 connections
         ExtrasPlayer player = SERVER.createPlayer(connection);
         connections.put(xuid, player);
         SERVER.log("[DEBUG] Created ExtrasPlayer for " + connection.bedrockUsername() + " (XUID: " + xuid + ")");
@@ -153,7 +149,6 @@ public class GeyserExtras implements EventRegistrar {
         String xuid = ev.connection().xuid();
         ExtrasPlayer player = connections.get(xuid);
         if (player == null) {
-            // 如果还没有创建，则在这里创建
             player = SERVER.createPlayer(ev.connection());
             connections.put(xuid, player);
             SERVER.warn("[DEBUG] ExtrasPlayer was null on SessionJoin, created one now for " + ev.connection().bedrockUsername());
@@ -166,9 +161,7 @@ public class GeyserExtras implements EventRegistrar {
         for (ExtrasPlayer player : connections.values()) {
             GeyserSession session = player.getSession();
             if (session.bedrockUsername().equals(connection.bedrockUsername())) {
-                // this occurs before bedrock authenticates properly
                 if (session.getAuthData() == null && session.getClientData() == null) {
-                    // we clear the players packs here as its possible that the game crashes when trying to load a pack
                     player.getPreferences().getSelectedPacks().clear();
                     player.getPreferences().save();
                 }
@@ -202,11 +195,13 @@ public class GeyserExtras implements EventRegistrar {
     }
 
     public void onGeyserShutdown(GeyserShutdownEvent ignored) {
+        if (tickExecutor != null) {
+            tickExecutor.shutdown();
+        }
         autoReconnectAll();
     }
 
     public void onLoadPacks(SessionLoadResourcePacksEvent ev) {
-        // 这里会由事件触发创建，但 onSessionLogin 已经创建了，可以覆盖或忽略
         String xuid = ev.connection().xuid();
         if (!connections.containsKey(xuid)) {
             ExtrasPlayer player = SERVER.createPlayer(ev.connection());
@@ -229,9 +224,7 @@ public class GeyserExtras implements EventRegistrar {
         }
     }
 
-    // These are called from the seperate plugin classes and these aren't ever called on standalone / extension
     public void onJavaPlayerJoin(UUID javaUUID) {
-        // this still saves sometimes if your a bedrock player anyway (doesnt really matter atm but pretty stupid that it happens)
         if (!IdUtils.isBedrockPlayer(javaUUID)) {
             javaConnections.put(javaUUID, JavaPreferencesData.load(javaUUID));
         }
