@@ -240,18 +240,18 @@ public class ExtrasPlayer {
     }
 
     public void resetTitle() {
-        SERVER.info("[DEBUG] resetTitle called");
+        SERVER.log("[DEBUG] resetTitle called");
         SetTitlePacket titlePacket = new SetTitlePacket();
         titlePacket.setType(SetTitlePacket.Type.CLEAR);
         titlePacket.setText("");
         titlePacket.setXuid("");
         titlePacket.setPlatformOnlineId("");
         session.sendUpstreamPacket(titlePacket);
-        SERVER.info("[DEBUG] CLEAR packet sent");
+        SERVER.log("[DEBUG] CLEAR packet sent");
     }
 
     public void sendTitle(String title, String subtitle, int fadeIn, int stay, int fadeOut) {
-        SERVER.info("[DEBUG] sendTitle called - title=\"" + title + "\", subtitle=\"" + subtitle + "\", stay=" + stay);
+        SERVER.log("[DEBUG] sendTitle called - title=\"" + title + "\", subtitle=\"" + subtitle + "\", stay=" + stay);
         
         SetTitlePacket titlePacket = new SetTitlePacket();
         titlePacket.setType(SetTitlePacket.Type.TITLE);
@@ -259,7 +259,7 @@ public class ExtrasPlayer {
         titlePacket.setXuid("");
         titlePacket.setPlatformOnlineId("");
         session.sendUpstreamPacket(titlePacket);
-        SERVER.info("[DEBUG] TITLE packet sent");
+        SERVER.log("[DEBUG] TITLE packet sent");
         
         if (subtitle != null && !subtitle.isEmpty()) {
             SetTitlePacket subPacket = new SetTitlePacket();
@@ -268,7 +268,7 @@ public class ExtrasPlayer {
             subPacket.setXuid("");
             subPacket.setPlatformOnlineId("");
             session.sendUpstreamPacket(subPacket);
-            SERVER.info("[DEBUG] SUBTITLE packet sent");
+            SERVER.log("[DEBUG] SUBTITLE packet sent");
         }
         
         SetTitlePacket timesPacket = new SetTitlePacket();
@@ -279,18 +279,18 @@ public class ExtrasPlayer {
         timesPacket.setXuid("");
         timesPacket.setPlatformOnlineId("");
         session.sendUpstreamPacket(timesPacket);
-        SERVER.info("[DEBUG] TIMES packet sent");
+        SERVER.log("[DEBUG] TIMES packet sent");
     }
 
     public void sendActionbarTitle(String text) {
-        SERVER.info("[DEBUG] sendActionbarTitle called - text=\"" + text + "\"");
+        SERVER.log("[DEBUG] sendActionbarTitle called - text=\"" + text + "\"");
         SetTitlePacket packet = new SetTitlePacket();
         packet.setType(SetTitlePacket.Type.ACTIONBAR);
         packet.setText(text != null ? text : "");
         packet.setXuid("");
         packet.setPlatformOnlineId("");
         session.sendUpstreamPacket(packet);
-        SERVER.info("[DEBUG] ACTIONBAR packet sent");
+        SERVER.log("[DEBUG] ACTIONBAR packet sent");
     }
 
     public void sendForm(BedrockForm form) {
